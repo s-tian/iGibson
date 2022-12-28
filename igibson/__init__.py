@@ -1,12 +1,12 @@
 import logging
 import os
 
-import semver
+import packaging.version
 import yaml
 
-__version__ = "2.0.6"
+__version__ = "2.2.1"
 
-__logo__ = """
+__logo__ = r"""
  _   _____  _  _
 (_) / ____|(_)| |
  _ | |  __  _ | |__   ___   ___   _ __
@@ -90,38 +90,43 @@ def get_version(dataset_path):
     try:
         version_filename = os.path.join(dataset_path, "VERSION")
         with open(version_filename, "r") as version_file:
-            return semver.VersionInfo.parse(version_file.read())
-    except (IOError, ValueError):
+            return packaging.version.Version(version_file.read())
+    except (IOError, packaging.version.InvalidVersion):
         raise ValueError("Could not read version file at %s - please update your assets and ig_dataset.", dataset_path)
 
 
-# Assert that the assets and dataset versions are both sub-versions of the iGibson version.
-_parsed_version = semver.VersionInfo.parse(__version__)
+_PARSED_VERSION = packaging.version.Version(__version__)
 
+# Backwards compatible up to this version:
+MIN_ASSETS_VERSION_INCL = "2.0.6"
+# Compatible with releases for same major/minor/patch:
+MAX_ASSETS_VERSION_EXCL = "%d.%d.%d" % (_PARSED_VERSION.major, _PARSED_VERSION.minor, _PARSED_VERSION.micro + 1)
 if os.path.exists(assets_path):
     _assets_version = get_version(assets_path)
     assert (
-        # The version numbers should be same at the major/minor/patch level but can differ at the 4th level.
-        _parsed_version
+        packaging.version.Version(MIN_ASSETS_VERSION_INCL)
         <= _assets_version
-        < _parsed_version.bump_patch()
-    ), "ig_assets version %s does not match iGibson version %s (need %s.*)" % (
+        < packaging.version.Version(MAX_ASSETS_VERSION_EXCL)
+    ), "ig_assets version %s incompatible. Needs to be in range [%s, %s)" % (
         str(_assets_version),
-        str(_parsed_version),
-        str(_assets_version),
+        str(MIN_ASSETS_VERSION_INCL),
+        str(MAX_ASSETS_VERSION_EXCL),
     )
 
+# Backwards compatible up to this version:
+MIN_DATASET_VERSION_INCL = "2.0.6"
+# Compatible with releases for same major/minor/patch:
+MAX_DATASET_VERSION_EXCL = "%d.%d.%d" % (_PARSED_VERSION.major, _PARSED_VERSION.minor, _PARSED_VERSION.micro + 1)
 if os.path.exists(ig_dataset_path):
     _ig_dataset_version = get_version(ig_dataset_path)
     assert (
-        # The version numbers should be same at the major/minor/patch level but can differ at the 4th level.
-        _parsed_version
+        packaging.version.Version(MIN_DATASET_VERSION_INCL)
         <= _ig_dataset_version
-        < _parsed_version.bump_patch()
-    ), "ig_dataset version %s does not match iGibson version %s (need %s.*)" % (
+        < packaging.version.Version(MAX_DATASET_VERSION_EXCL)
+    ), "ig_dataset version %s incompatible. Needs to be in range [%s, %s)" % (
         str(_ig_dataset_version),
-        str(_parsed_version),
-        str(_ig_dataset_version),
+        str(MIN_DATASET_VERSION_INCL),
+        str(MAX_DATASET_VERSION_EXCL),
     )
 
 examples_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "examples")
