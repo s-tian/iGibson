@@ -49,7 +49,7 @@ uniform vec3 light_color; // light color
 
 
 void main() {
-    vec3 lightDir = vec3(0,0,1);//normalize(light_position);
+    vec3 lightDir = vec3(0,0.5,1);//normalize(light_position);
     //sunlight pointing to z direction
     float diff = 0.5 + 0.5 * max(dot(Normal_world, lightDir), 0.0);
     vec3 diffuse = diff * light_color;
@@ -69,9 +69,9 @@ void main() {
             float closestDepth = 0;
             shadow = 0.0;
             float current_shadow = 0;
-            for(int x = -1; x <= 1; ++x) // sample fewer to save time
+            for(float x = -2; x <= 2; x+=0.25) // sample fewer to save time
             {
-                for (int y = -1; y <= 1; ++y)
+                for (float y = -2; y <= 2; y+=0.25)
                 {
                     closestDepth = texture(depthMap, projCoords.xy + vec2(x, y) * texelSize).b * 0.5 + 0.5;
                     current_shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
@@ -80,7 +80,7 @@ void main() {
                     shadow += current_shadow;
                 }
             }
-            shadow /= 9.0;
+            shadow /= 289.0;
 
         }
         else {

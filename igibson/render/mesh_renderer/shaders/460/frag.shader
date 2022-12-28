@@ -83,7 +83,7 @@ vec3 fresnelSchlick(vec3 F0, float cosTheta)
 }
 
 void main() {
-    vec3 lightDir = vec3(0,0,1);//normalize(light_position);
+    vec3 lightDir = vec3(0,0.5,1);//normalize(light_position);
     //sunlight pointing to z direction
     float diff = 0.5 + 0.5 * max(dot(Normal_world, lightDir), 0.0);
     vec3 diffuse = diff * light_color;
@@ -104,9 +104,9 @@ void main() {
         shadow = 0.0;
         float current_shadow = 0;
 
-        for(int x = -2; x <= 2; ++x)
+        for(float x = -2; x <= 2; x+=0.25)
         {
-            for (int y = -2; y <= 2; ++y)
+            for (float y = -2; y <= 2; y+=0.25)
             {
                 closestDepth = texture(depthMap, projCoords.xy + vec2(x, y) * texelSize).b * 0.5 + 0.5;
                 current_shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
@@ -115,7 +115,7 @@ void main() {
                 shadow += current_shadow;
             }
         }
-        shadow /= 25.0;
+        shadow /= 289.0;
     }
     else {
         shadow = 0.0;
@@ -225,7 +225,7 @@ void main() {
     } else {
         PCColour = vec4(Pos_cam, 1);
     }
-    outputColour = outputColour *  (1 - shadow * 0.5);
+    outputColour = outputColour * (1 - shadow * 0.5);
     SceneFlowColour =  vec4(Pos_cam - Pos_cam_prev,1);
     OpticalFlowColour =  vec4(Optical_flow,0,1);
 
